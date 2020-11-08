@@ -12,3 +12,28 @@ pub async fn index(
 
     Ok(HttpResponse::Ok().body(rendered))
 }
+
+pub async fn blog(
+    tmpl: web::Data<Tera>
+) -> Result<HttpResponse, Error> {
+    let mut context = Context::new();
+
+    let rendered = tmpl
+        .render("blog.html.tera", &context)
+        .map_err(error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().body(rendered))
+}
+
+pub async fn post(
+    tmpl: web::Data<Tera>,
+    post_id: web::Path<u32>
+) -> Result<HttpResponse, Error> {
+    let mut context = Context::new();
+
+    let rendered = tmpl
+        .render("post.html.tera", &context)
+        .map_err(error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().body(rendered))
+}

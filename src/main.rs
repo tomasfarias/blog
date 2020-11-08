@@ -25,8 +25,9 @@ async fn main() -> io::Result<()> {
             .wrap(Logger::default())
             .service(web::resource("/").route(web::get().to(routes::index)))
             .service(web::resource("/index").route(web::get().to(routes::index)))
+            .service(web::resource("/blog").route(web::get().to(routes::blog)))
+            .service(web::resource("/blog/post/{id}").route(web::get().to(routes::blog)))
             .service(fs::Files::new("/static", "static/"))
-            
     };
     HttpServer::new(app)
         .bind("127.0.0.1:8080")?
