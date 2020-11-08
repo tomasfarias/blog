@@ -37,6 +37,7 @@ async fn main() -> io::Result<()> {
             .service(web::resource("/index").route(web::get().to(routes::index)))
             .service(web::resource("/blog").route(web::get().to(routes::blog)))
             .service(web::resource("/blog/post/{id}").route(web::get().to(routes::blog)))
+            .service(web::resource("/hireme").route(web::get().to(routes::hire_me)))
             .service(fs::Files::new("/static", "static/"))
     };
     HttpServer::new(app).bind("127.0.0.1:8080")?.run().await

@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Tomás Farías</title>
+  <title>Hire me</title>
 </head>
 <body>
-  <a href="/blog">Blog</a>
-  <a href="/hireme">Hire me</a>
+  <p>Thanks for your interest in hiring me!</p>
 </body>
 </html>

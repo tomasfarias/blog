@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>My web</title>
+  <title>Blog</title>
 </head>
 <body>
-  <h4>My Web<h4>
+  <h4>Posts</h4>
+  {% if posts | length == 0 %}
+  <p>No posts available, stay tuned!</p>
+  {% else %}
+    <ul>
+      {% for post in posts %}
+      <p>{{ post.published_at }} | <a href="{{ post.slug }}">{{ post.title }}</a></p>
+      <br>
+      {% endfor %}
+    </ul>
+  {% endif %}
 </body>
 </html>
