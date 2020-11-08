@@ -1,9 +1,7 @@
 use actix_web::{error, web, Error, HttpResponse, Result};
 use tera::{Context, Tera};
 
-pub async fn index(
-    tmpl: web::Data<Tera>
-) -> Result<HttpResponse, Error> {
+pub async fn index(tmpl: web::Data<Tera>) -> Result<HttpResponse, Error> {
     let mut context = Context::new();
 
     let rendered = tmpl
@@ -13,9 +11,7 @@ pub async fn index(
     Ok(HttpResponse::Ok().body(rendered))
 }
 
-pub async fn blog(
-    tmpl: web::Data<Tera>
-) -> Result<HttpResponse, Error> {
+pub async fn blog(tmpl: web::Data<Tera>) -> Result<HttpResponse, Error> {
     let mut context = Context::new();
 
     let rendered = tmpl
@@ -25,10 +21,7 @@ pub async fn blog(
     Ok(HttpResponse::Ok().body(rendered))
 }
 
-pub async fn post(
-    tmpl: web::Data<Tera>,
-    post_id: web::Path<u32>
-) -> Result<HttpResponse, Error> {
+pub async fn post(tmpl: web::Data<Tera>, post_id: web::Path<u32>) -> Result<HttpResponse, Error> {
     let mut context = Context::new();
 
     let rendered = tmpl
