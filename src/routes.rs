@@ -7,7 +7,7 @@ use tera::{Context, Tera};
 use crate::db::{self, DBError};
 
 pub async fn index(tmpl: web::Data<Tera>) -> Result<HttpResponse, Error> {
-    let mut context = Context::new();
+    let context = Context::new();
 
     let rendered = tmpl
         .render("index.html.tera", &context)
@@ -40,7 +40,7 @@ pub async fn post(
     let mut context = Context::new();
     let post = web::block(move || db::select_post_with_slug(&post_slug, &pool))
         .await?;
-    context.insert("posts", &post);
+    context.insert("post", &post);
 
     let rendered = tmpl
         .render("post.html.tera", &context)
@@ -50,7 +50,7 @@ pub async fn post(
 }
 
 pub async fn hire_me(tmpl: web::Data<Tera>) -> Result<HttpResponse, Error> {
-    let mut context = Context::new();
+    let context = Context::new();
 
     let rendered = tmpl
         .render("hireme.html.tera", &context)

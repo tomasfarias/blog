@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>My web</title>
+  <title>{{ post.title }}</title>
 </head>
 <body>
-  <h4>My Web<h4>
+  <h1>{{ post.title }}</h1>
+  <p>{{ post.published_at }}</p>
+  <br>
+  <p>{{ post.body }}</p>
 </body>
 </html>

@@ -22,7 +22,7 @@ async fn main() -> io::Result<()> {
     let pool = db::init_pool(&database_url).expect("Failed to create database connection pool");
 
     let app = move || {
-        let mut templates = match Tera::new("templates/**/*") {
+        let templates = match Tera::new("templates/**/*") {
             Ok(t) => t,
             Err(e) => {
                 eprintln!("{}", e);
@@ -38,7 +38,7 @@ async fn main() -> io::Result<()> {
             .service(web::resource("/").route(web::get().to(routes::index)))
             .service(web::resource("/index").route(web::get().to(routes::index)))
             .service(web::resource("/blog").route(web::get().to(routes::blog)))
-            .service(web::resource("/blog/post/{slug}").route(web::get().to(routes::blog)))
+            .service(web::resource("/blog/post/{slug}").route(web::get().to(routes::post)))
             .service(web::resource("/hireme").route(web::get().to(routes::hire_me)))
             .service(fs::Files::new("/static", "static/"))
     };
