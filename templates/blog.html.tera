@@ -11,7 +11,7 @@
   {% else %}
     <ul>
       {% for post in posts %}
-      <p>{{ post.published_at }} | <a href="{{ post.slug }}">{{ post.title }}</a></p>
+      <p>{{ post.published_at }} | <a href="/blog/{{ post.slug }}">{{ post.title }}</a></p>
       <br>
       {% endfor %}
     </ul>

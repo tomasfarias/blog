@@ -41,12 +41,6 @@ impl Post {
             .first::<Post>(conn)
     }
 
-    pub fn insert(new_post: NewPost, conn: &PgConnection) -> QueryResult<usize> {
-        diesel::insert_into(posts::table)
-            .values(new_post)
-            .execute(conn)
-    }
-
     pub fn publish_with_slug(_slug: &str, conn: &PgConnection) -> QueryResult<usize> {
         let now = Utc::now().naive_utc();
         diesel::update(posts::table)
@@ -85,5 +79,11 @@ impl NewPost {
             created_at: created_at,
             published_at: published_at,
         }
+    }
+
+    pub fn insert(&self, conn: &PgConnection) -> QueryResult<Post> {
+        diesel::insert_into(posts::table)
+            .values(self)
+            .get_result(conn)
     }
 }

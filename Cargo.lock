@@ -2306,6 +2306,7 @@ dependencies = [
  "derive_more",
  "diesel",
  "env_logger",
+ "log",
  "serde",
  "tera",
 ]

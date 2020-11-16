@@ -15,7 +15,6 @@ mod models;
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
-    env::set_var("RUST_LOG", "actix_todo=debug,actix_web=info");
     env_logger::init();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not defined");
@@ -38,7 +37,10 @@ async fn main() -> io::Result<()> {
             .service(web::resource("/").route(web::get().to(routes::index)))
             .service(web::resource("/index").route(web::get().to(routes::index)))
             .service(web::resource("/blog").route(web::get().to(routes::blog)))
-            .service(web::resource("/blog/post/{slug}").route(web::get().to(routes::post)))
+            .service(web::resource("/blog/{slug}").route(web::get().to(routes::post)))
+            .service(web::resource("/write")
+                     .route(web::get().to(routes::write))
+                     .route(web::post().to(routes::create)))
             .service(web::resource("/hireme").route(web::get().to(routes::hire_me)))
             .service(fs::Files::new("/static", "static/"))
     };

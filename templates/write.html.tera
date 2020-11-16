@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Write</title>
+</head>
+<body>
+  <h4>Write a new post</h4>
+  <form action="/write" method="post">
+    <input type="text" name="title"/>
+    <label for="published">Publish: </label>
+    <input type="checkbox" id="published" name="published" checked/>
+    <input type="text" name="body"/>
+    <input type="submit" value="Submit">
+  </form>
+</body>
+</html>

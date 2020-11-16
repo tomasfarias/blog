@@ -4,7 +4,7 @@ CREATE TABLE posts (
   slug VARCHAR NOT NULL,
   body TEXT NOT NULL,
   published BOOLEAN NOT NULL DEFAULT 'f',
-  create_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL,
   published_at TIMESTAMP NULL
 );
 
