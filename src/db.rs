@@ -8,7 +8,7 @@ use diesel::pg::PgConnection;
 use diesel::result::Error;
 use diesel::r2d2::{ConnectionManager, Pool, PoolError, PooledConnection};
 
-use crate::models::{NewPost, Post};
+use crate::models::{NewPost, Post, User};
 
 #[derive(Debug, Display)]
 pub enum DBError {
@@ -80,4 +80,9 @@ pub fn delete_post(slug: &str, pool: &PgPool) -> Result<(), DBError> {
     Post::delete_with_slug(slug, get_conn(pool)?.deref())
         .map(|_| ())
         .map_err(|e| DBError::DeleteError(e))
+}
+
+pub fn select_user_with_email(email: &str, pool: &PgPool) -> Result<User, DBError> {
+    User::select_with_email(email, get_conn(pool)?.deref())
+        .map_err(|e| DBError::SelectError(e))
 }

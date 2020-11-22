@@ -3,9 +3,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use serde::Serialize;
 
-use crate::models::schema::{
-    posts
-};
+use crate::models::schema::posts;
 
 #[derive(Serialize, Debug, Queryable)]
 pub struct Post {
@@ -15,7 +13,9 @@ pub struct Post {
     pub body: String,
     pub published: bool,
     pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
     pub published_at: Option<NaiveDateTime>,
+    pub user_id: i32,
 }
 
 #[derive(Debug, Insertable)]
@@ -26,17 +26,20 @@ pub struct NewPost {
     pub body: String,
     pub published: bool,
     pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
     pub published_at: Option<NaiveDateTime>,
+    pub user_id: i32,
 }
 
 impl Post {
-    pub fn last_n_published(n: i64, conn: &PgConnection) -> QueryResult<Vec<Post>> {
-        posts::table.order(posts::published_at.desc())
+    pub fn last_n_published(n: i64, conn: &PgConnection) -> QueryResult<Vec<Self>> {
+        posts::table.filter(posts::published.eq(true))
+            .order(posts::published_at.desc())
             .limit(n)
             .load::<Post>(conn)
     }
 
-    pub fn select_with_slug(_slug: &str, conn: &PgConnection) -> QueryResult<Post> {
+    pub fn select_with_slug(_slug: &str, conn: &PgConnection) -> QueryResult<Self> {
         posts::table.filter(posts::slug.eq(_slug))
             .first::<Post>(conn)
     }
@@ -77,7 +80,9 @@ impl NewPost {
             body: body.to_owned(),
             published: published,
             created_at: created_at,
+            updated_at: created_at.clone(),
             published_at: published_at,
+            user_id: 1,
         }
     }
 

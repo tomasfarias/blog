@@ -4,14 +4,16 @@ extern crate diesel;
 use std::{env, io, process};
 
 use actix_files as fs;
-use actix_web::middleware::{Logger};
+use actix_web::middleware::Logger;
 use actix_web::{get, http, web, App, HttpServer, Responder};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use tera::Tera;
 
 mod errors;
 mod routes;
 mod db;
 mod models;
+mod auth;
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
@@ -28,17 +30,20 @@ async fn main() -> io::Result<()> {
                 process::exit(1);
             }
         };
+        let auth_handler = HttpAuthentication::bearer(auth::validator);
+        let error_handlers = errors::init_error_handlers();
 
         App::new()
             .data(templates)
             .data(pool.clone())
-            .wrap(routes::error_handlers())
+            .wrap(error_handlers)
             .wrap(Logger::default())
             .service(web::resource("/").route(web::get().to(routes::index)))
             .service(web::resource("/index").route(web::get().to(routes::index)))
             .service(web::resource("/blog").route(web::get().to(routes::blog)))
             .service(web::resource("/blog/{slug}").route(web::get().to(routes::post)))
             .service(web::resource("/write")
+                     .wrap(auth_handler)
                      .route(web::get().to(routes::write))
                      .route(web::post().to(routes::create)))
             .service(web::resource("/hireme").route(web::get().to(routes::hire_me)))
