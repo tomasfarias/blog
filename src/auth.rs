@@ -1,72 +1,24 @@
-use std::env;
-use std::error;
+use crate::config::CONFIG;
+use actix_web::{error, Error};
+use argon2::{self, Config};
+use log;
 
-use actix_web::{dev::ServiceRequest, Error, error::ResponseError, HttpResponse};
-use actix_web_httpauth::extractors::bearer::{BearerAuth, Config};
-use actix_web_httpauth::extractors::AuthenticationError;
-use alcoholic_jwt::{token_kid, validate, Validation, JWKS};
-use derive_more::Display;
-use reqwest;
-
-#[derive(Debug, Display)]
-pub enum ServiceError {
-    #[display(fmt = "Internal Server Error")]
-    InternalServerError,
-    #[display(fmt = "BadRequest: {}", _0)]
-    BadRequest(String),
-    #[display(fmt = "JWKSFetchError")]
-    JWKSFetchError,
-}
-
-impl ResponseError for ServiceError {
-    fn error_response(&self) -> HttpResponse {
-        match self {
-            ServiceError::InternalServerError => {
-                HttpResponse::InternalServerError().json("Internal Server Error, Please try later")
-            }
-            ServiceError::BadRequest(ref message) => HttpResponse::BadRequest().json(message),
-            ServiceError::JWKSFetchError => {
-                HttpResponse::InternalServerError().json("Could not fetch JWKS")
-            }
-        }
-    }
-}
-
-pub async fn validator(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, Error> {
-    let config = req
-        .app_data::<Config>()
-        .map(|data| data.clone())
-        .unwrap_or_else(Default::default);
-
-    match validate_token(credentials.token()) {
-        Ok(res) => {
-            if res == true {
-                Ok(req)
-            } else {
-                Err(AuthenticationError::from(config).into())
-            }
-        }
-        Err(_) => Err(AuthenticationError::from(config).into()),
-    }
-}
-
-pub fn validate_token(token: &str) -> Result<bool, ServiceError> {
-    let authority = env::var("AUTHORITY").expect("AUTHORITY not defined");
-    let jwks = fetch_jwks(&format!("{}{}", authority.as_str(), ".well-known/jwks.json"))
-        .expect("failed to fetch jwks");
-    let validations = vec![Validation::Issuer(authority), Validation::SubjectPresent];
-
-    let kid = match token_kid(&token) {
-        Ok(res) => res.expect("failed to decode kid"),
-        Err(_) => return Err(ServiceError::JWKSFetchError),
+pub fn hash_password(password: &str) -> Result<String, Error> {
+    let config = Config {
+        secret: &CONFIG.secret_key.as_bytes(),
+        ..Default::default()
     };
-    let jwk = jwks.find(&kid).expect("Specified key not found in set");
-    let res = validate(token, jwk, validations);
-    Ok(res.is_ok())
+    argon2::hash_encoded(password.as_bytes(), &CONFIG.auth_salt.as_bytes(), &config)
+        .map_err(|err| {
+            log::error!("Failed to hash password: {}", err);
+            error::ErrorInternalServerError
+        })
 }
 
-fn fetch_jwks(uri: &str) -> Result<JWKS, Box<dyn error::Error>> {
-    let mut res = reqwest::get(uri)?;
-    let val = res.json::<JWKS>()?;
-    return Ok(val);
+pub fn verify(hash: &str, password: &str) -> Result<bool, Error> {
+    argon2::verify_encoded_ext(hash, password.as_bytes(), &CONFIG.secret_key.as_bytes(), &[])
+        .map_err(|err| {
+            log::error!("Failed to verify password: {}", err);
+            error::ErrorUnauthorized
+        })
 }

@@ -1,13 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{ post.title }}</title>
-</head>
-<body>
+{% extends "base.html.tera" %}
+{% block title %}{{ post.title }}{% endblock title %}
+{% block head %}
+  {{ super() }}
+{% endblock head %}
+{% block content %}
   <h1>{{ post.title }}</h1>
   <p>{{ post.published_at }}</p>
   <br>
   <p>{{ post.body }}</p>
-</body>
-</html>
+{% endblock content %}

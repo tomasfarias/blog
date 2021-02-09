@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Tomás Farías</title>
-</head>
-<body>
+{% extends "base.html.tera" %}
+{% block title %}Tomás Farías{% endblock title %}
+{% block head %}
+  {{ super() }}
+{% endblock head %}
+{% block content %}
   <a href="/blog">Blog</a>
   <a href="/hireme">Hire me</a>
-</body>
-</html>
+{% endblock content %}

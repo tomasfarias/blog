@@ -67,7 +67,7 @@ fn title_to_slug(title: &str) -> String {
 }
 
 impl NewPost {
-    pub fn new(title: &str, body: &str, published: bool) -> NewPost {
+    pub fn new(title: &str, body: &str, published: bool, user_id: i32) -> NewPost {
         let created_at = Utc::now().naive_utc();
         let published_at = match published {
             true => Some(Utc::now().naive_utc()),
@@ -82,7 +82,7 @@ impl NewPost {
             created_at: created_at,
             updated_at: created_at.clone(),
             published_at: published_at,
-            user_id: 1,
+            user_id: user_id,
         }
     }
 

@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Blog</title>
-</head>
-<body>
+{% extends "base.html.tera" %}
+{% block title %}Blog{% endblock title %}
+{% block head %}
+  {{ super() }}
+{% endblock head %}
+{% block content %}
   <h4>Posts</h4>
   {% if posts | length == 0 %}
   <p>No posts available, stay tuned!</p>
@@ -16,5 +15,4 @@
       {% endfor %}
     </ul>
   {% endif %}
-</body>
-</html>
+{% endblock content %}

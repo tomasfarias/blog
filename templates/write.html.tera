@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Write</title>
-</head>
-<body>
+{% extends "base.html.tera" %}
+{% block title %}Write{% endblock title %}
+{% block head %}
+  {{ super() }}
+{% endblock head %}
+{% block content %}
   <h4>Write a new post</h4>
   <form action="/write" method="post">
     <input type="text" name="title"/>
@@ -13,5 +12,4 @@
     <input type="text" name="body"/>
     <input type="submit" value="Submit">
   </form>
-</body>
-</html>
+{% endblock content %}

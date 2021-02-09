@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{ reason }}</title>
-</head>
-<body>
+{% extends "base.html.tera" %}
+{% block title %}{{ reason }}{% endblock title %}
+{% block head %}
+  {{ super() }}
+{% endblock head %}
+{% block content %}
   <h1>{{ status_code }}</h1>
   <p>{{ message }}</p>
-</body>
-</html>
+{% endblock content %}

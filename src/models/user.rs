@@ -13,6 +13,7 @@ pub struct User {
     pub last_name: String,
     pub email: String,
     pub created_at: NaiveDateTime,
+    pub hash: String,
 }
 
 impl User {

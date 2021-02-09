@@ -6,6 +6,7 @@ table! {
         body -> Text,
         published -> Bool,
         created_at -> Timestamp,
+        updated_at -> Timestamp,
         published_at -> Nullable<Timestamp>,
         user_id -> Nullable<Int4>,
     }
@@ -18,6 +19,7 @@ table! {
         last_name -> Text,
         email -> Text,
         created_at -> Timestamp,
+        hash -> Text,
     }
 }
 
