@@ -4,8 +4,6 @@ use serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Config {
-    pub auth_salt: String,
-    pub secret_key: String,
     pub database_url: String,
     pub rust_backtrace: u8,
 }

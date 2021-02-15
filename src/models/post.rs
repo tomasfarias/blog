@@ -15,7 +15,6 @@ pub struct Post {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub published_at: Option<NaiveDateTime>,
-    pub user_id: i32,
 }
 
 #[derive(Debug, Insertable)]
@@ -28,7 +27,6 @@ pub struct NewPost {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub published_at: Option<NaiveDateTime>,
-    pub user_id: i32,
 }
 
 impl Post {
@@ -67,7 +65,7 @@ fn title_to_slug(title: &str) -> String {
 }
 
 impl NewPost {
-    pub fn new(title: &str, body: &str, published: bool, user_id: i32) -> NewPost {
+    pub fn new(title: &str, body: &str, published: bool) -> NewPost {
         let created_at = Utc::now().naive_utc();
         let published_at = match published {
             true => Some(Utc::now().naive_utc()),
@@ -82,7 +80,6 @@ impl NewPost {
             created_at: created_at,
             updated_at: created_at.clone(),
             published_at: published_at,
-            user_id: user_id,
         }
     }
 

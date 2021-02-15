@@ -6,9 +6,7 @@ CREATE TABLE posts (
   published BOOLEAN NOT NULL DEFAULT 'f',
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
-  published_at TIMESTAMP NULL,
-  user_id INT,
-  CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id)
+  published_at TIMESTAMP NULL
 );
 
 CREATE UNIQUE INDEX slug_idx ON posts (slug);

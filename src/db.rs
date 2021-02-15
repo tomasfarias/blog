@@ -3,86 +3,83 @@ use std::ops::Deref;
 use actix_web::{error, HttpResponse};
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::{header, StatusCode};
-use derive_more::{Display};
+use derive_more::{Display, Error};
 use diesel::pg::PgConnection;
-use diesel::result::Error;
-use diesel::r2d2::{ConnectionManager, Pool, PoolError, PooledConnection};
+use diesel::result;
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection, PoolError, self};
 
-use crate::models::{NewPost, Post, User};
+use crate::models::{NewPost, Post};
 
-#[derive(Debug, Display)]
-pub enum DBError {
-    #[display(fmt = "not found")]
-    SelectError(Error),
-    #[display(fmt = "bad request")]
-    InsertError(Error),
-    #[display(fmt = "bad request")]
-    UpdateError(Error),
-    #[display(fmt = "bad request")]
-    DeleteError(Error),
-    #[display(fmt = "internal error")]
-    PoolError(PoolError),
-}
-
-impl error::ResponseError for DBError {
-    fn error_response(&self) -> HttpResponse {
-        HttpResponseBuilder::new(self.status_code())
-            .set_header(header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(self.to_string())
-    }
-
-    fn status_code(&self) -> StatusCode {
-        match *self {
-            DBError::SelectError(_) => StatusCode::NOT_FOUND,
-            DBError::InsertError(_) => StatusCode::BAD_REQUEST,
-            DBError::UpdateError(_) => StatusCode::BAD_REQUEST,
-            DBError::DeleteError(_) => StatusCode::BAD_REQUEST,
-            DBError::PoolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
+#[derive(Debug, Display, Error)]
+pub enum DatabaseError {
+    #[display(fmt = "Error in connection pool : {}", _0)]
+    ConnectionPoolError(PoolError),
+    #[display(fmt = "Query returned no results: {}", _0)]
+    NotFound(result::Error),
+    #[display(fmt = "Error executing query: {}", _0)]
+    QueryError(result::Error),
 }
 
 pub type PgPool = Pool<ConnectionManager<PgConnection>>;
 type PgPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
-pub fn init_pool(database_url: &str) -> Result<PgPool, PoolError> {
+pub fn init_pool(database_url: &str) -> Result<PgPool, DatabaseError> {
     let manager = ConnectionManager::<PgConnection>::new(database_url);
-    Pool::builder().build(manager)
+    Pool::builder()
+        .build(manager)
+        .map_err(|e| DatabaseError::ConnectionPoolError(e))
 }
 
-pub fn get_conn(pool: &PgPool) -> Result<PgPooledConnection, DBError> {
-    pool.get().map_err(|e| DBError::PoolError(e))
+pub fn get_conn(pool: &PgPool) -> Result<PgPooledConnection, DatabaseError> {
+    pool.get()
+        .map_err(|e| DatabaseError::ConnectionPoolError(e))
 }
 
-pub fn select_last_n_posts(n: i64, pool: &PgPool) -> Result<Vec<Post>, DBError> {
+pub fn select_last_n_posts(n: i64, pool: &PgPool) -> Result<Vec<Post>, DatabaseError> {
     Post::last_n_published(n, get_conn(pool)?.deref())
-        .map_err(|e| DBError::SelectError(e))
+        .map_err(|e| {
+            match e {
+                result::Error::NotFound => DatabaseError::NotFound(e),
+                _ => DatabaseError::QueryError(e)
+            }
+        })
 }
 
-pub fn select_post_with_slug(slug: &str, pool: &PgPool) -> Result<Post, DBError> {
-    Post::select_with_slug(slug, get_conn(pool)?.deref())
-        .map_err(|e| DBError::SelectError(e))
+pub fn select_post_with_slug(slug: &str, pool: &PgPool) -> Result<Post, DatabaseError> {
+    Post::select_with_slug(slug, get_conn(pool)?.deref()).map_err(|e| {
+            match e {
+                result::Error::NotFound => DatabaseError::NotFound(e),
+                _ => DatabaseError::QueryError(e)
+            }
+        })
 }
 
-pub fn insert_new_post(title: &str, body: &str, published: bool, pool: &PgPool) -> Result<Post, DBError> {
+pub fn insert_new_post(title: &str, body: &str, published: bool, pool: &PgPool) -> Result<Post, DatabaseError> {
     let new_post = NewPost::new(title, body, published);
-    new_post.insert(get_conn(pool)?.deref())
-        .map_err(|e| DBError::InsertError(e))
+    new_post.insert(get_conn(pool)?.deref()).map_err(|e| {
+            match e {
+                result::Error::NotFound => DatabaseError::NotFound(e),
+                _ => DatabaseError::QueryError(e)
+            }
+        })
 }
 
-pub fn publish_post(slug: &str, pool: &PgPool) -> Result<(), DBError> {
+pub fn publish_post(slug: &str, pool: &PgPool) -> Result<(), DatabaseError> {
     Post::publish_with_slug(slug, get_conn(pool)?.deref())
-        .map(|_| ())
-        .map_err(|e| DBError::UpdateError(e))
+        .map(|_| ()).map_err(|e| {
+            match e {
+                result::Error::NotFound => DatabaseError::NotFound(e),
+                _ => DatabaseError::QueryError(e)
+            }
+        })
 }
 
-pub fn delete_post(slug: &str, pool: &PgPool) -> Result<(), DBError> {
+pub fn delete_post(slug: &str, pool: &PgPool) -> Result<(), DatabaseError> {
     Post::delete_with_slug(slug, get_conn(pool)?.deref())
-        .map(|_| ())
-        .map_err(|e| DBError::DeleteError(e))
-}
-
-pub fn select_user_with_email(email: &str, pool: &PgPool) -> Result<User, DBError> {
-    User::select_with_email(email, get_conn(pool)?.deref())
-        .map_err(|e| DBError::SelectError(e))
+        .map(|_| ()).map_err(|e| {
+            match e {
+                result::Error::NotFound => DatabaseError::NotFound(e),
+                _ => DatabaseError::QueryError(e)
+            }
+        })
 }
