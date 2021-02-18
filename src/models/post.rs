@@ -11,6 +11,7 @@ pub struct Post {
     pub title: String,
     pub slug: String,
     pub body: String,
+    pub introduction: Option<String>,
     pub published: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -23,6 +24,7 @@ pub struct NewPost {
     pub title: String,
     pub slug: String,
     pub body: String,
+    pub introduction: Option<String>,
     pub published: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -30,9 +32,10 @@ pub struct NewPost {
 }
 
 impl Post {
-    pub fn last_n_published(n: i64, conn: &PgConnection) -> QueryResult<Vec<Self>> {
+    pub fn last_n_published(n: i64, offset: i64, conn: &PgConnection) -> QueryResult<Vec<Self>> {
         posts::table.filter(posts::published.eq(true))
             .order(posts::published_at.desc())
+            .offset(offset)
             .limit(n)
             .load::<Post>(conn)
     }
@@ -65,7 +68,7 @@ fn title_to_slug(title: &str) -> String {
 }
 
 impl NewPost {
-    pub fn new(title: &str, body: &str, published: bool) -> NewPost {
+    pub fn new(title: &str, body: &str, introduction: Option<String>, published: bool) -> NewPost {
         let created_at = Utc::now().naive_utc();
         let published_at = match published {
             true => Some(Utc::now().naive_utc()),
@@ -76,6 +79,7 @@ impl NewPost {
             title: title.to_owned(),
             slug: title_to_slug(&title),
             body: body.to_owned(),
+            introduction: introduction,
             published: published,
             created_at: created_at,
             updated_at: created_at.clone(),

@@ -3,6 +3,7 @@ use log;
 use actix_web::{error, error::BlockingError, web, HttpResponse, Result, dev::HttpResponseBuilder, http::header, http::StatusCode};
 use derive_more::{Display, Error};
 use tera::{Context, Tera};
+use serde::Deserialize;
 
 use crate::db::{self, DatabaseError};
 
@@ -31,24 +32,18 @@ impl error::ResponseError for ServerError {
     }
 }
 
-pub async fn index(tmpl: web::Data<Tera>) -> Result<HttpResponse, ServerError> {
-    let context = Context::new();
-    let rendered = tmpl
-        .render("index.html.tera", &context)
-        .map_err(|e| {
-            log::error!("Failed to render template: {}", e);
-            ServerError::InternalError
-        })?;
-
-    Ok(HttpResponse::Ok().body(rendered))
+#[derive(Deserialize)]
+pub struct PageQuery {
+    page: Option<i64>,
 }
 
 pub async fn blog(
     pool: web::Data<db::PgPool>,
+    query: web::Query<PageQuery>,
     tmpl: web::Data<Tera>,
 ) -> Result<HttpResponse, ServerError> {
-    let mut context = Context::new();
-    let posts = web::block(move || db::select_last_n_posts(10, &pool))
+    let offset = query.page.unwrap_or(0) * 15;
+    let posts = web::block(move || db::select_last_n_posts(10, offset, &pool))
         .await
         .map_err(|e| {
             match e {
@@ -62,6 +57,8 @@ pub async fn blog(
                 }
             }
         })?;
+
+    let mut context = Context::new();
     context.insert("posts", &posts);
 
     let rendered = tmpl
@@ -79,7 +76,6 @@ pub async fn post(
     tmpl: web::Data<Tera>,
     post_slug: web::Path<String>,
 ) -> Result<HttpResponse, ServerError> {
-    let mut context = Context::new();
     let post = web::block(move || db::select_post_with_slug(&post_slug, &pool))
         .await
         .map_err(|e| {
@@ -98,23 +94,12 @@ pub async fn post(
                 }
             }
         })?;
+
+    let mut context = Context::new();
     context.insert("post", &post);
 
     let rendered = tmpl
         .render("post.html.tera", &context)
-        .map_err(|e| {
-            log::error!("Failed to render template: {}", e);
-            ServerError::InternalError
-        })?;
-
-    Ok(HttpResponse::Ok().body(rendered))
-}
-
-pub async fn hire_me(tmpl: web::Data<Tera>) -> Result<HttpResponse, ServerError> {
-    let context = Context::new();
-
-    let rendered = tmpl
-        .render("hireme.html.tera", &context)
         .map_err(|e| {
             log::error!("Failed to render template: {}", e);
             ServerError::InternalError

@@ -1,9 +1,0 @@
-{% extends "base.html.tera" %}
-{% block title %}Tomás Farías{% endblock title %}
-{% block head %}
-  {{ super() }}
-{% endblock head %}
-{% block content %}
-  <a href="/blog">Blog</a>
-  <a href="/hireme">Hire me</a>
-{% endblock content %}

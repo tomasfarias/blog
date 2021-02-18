@@ -1,16 +1,20 @@
 {% extends "base.html.tera" %}
-{% block title %}Blog{% endblock title %}
+{% block title %}Tomás Farías Blog{% endblock title %}
 {% block head %}
   {{ super() }}
 {% endblock head %}
 {% block content %}
-  <h4>Posts</h4>
+  <h1>All posts</h1>
   {% if posts | length == 0 %}
   <p>No posts available, stay tuned!</p>
   {% else %}
     <ul>
       {% for post in posts %}
-      <p>{{ post.published_at }} | <a href="/blog/{{ post.slug }}">{{ post.title }}</a></p>
+      <h2><a href="/blog/{{ post.slug }}">{{ post.title }}</a></h2>
+      <p class="subtitle">{{ post.published_at }}</p>
+      {% if post.introduction %}
+        <p>{{ post.introduction }}</p>
+      {% endif %}
       <br>
       {% endfor %}
     </ul>

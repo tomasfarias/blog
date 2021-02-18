@@ -5,7 +5,7 @@
 {% endblock head %}
 {% block content %}
   <h1>{{ post.title }}</h1>
-  <p>{{ post.published_at }}</p>
+  <p class="subtitle">{{ post.published_at }}</p>
   <br>
   <p>{{ post.body }}</p>
 {% endblock content %}

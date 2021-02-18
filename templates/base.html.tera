@@ -3,12 +3,30 @@
   <head>
     {% block head %}
     <meta charset="utf-8">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/stylesheet.min.css">
     <title>{% block title %}{% endblock title %}</title>
     {% endblock head %}
   </head>
   <body>
+    <header class="header">
+      {% block header %}
+      <nav class="navbar">
+        <ul>
+          <li>
+            <a href="/">Home</a>
+          </li>
+          <li>
+            <a href="/posts/about-me">About me</a>
+          </li>
+        </ul>
+      </nav>
+      {% endblock header %}
+    </header>
+    </div>
     <div id="content">{% block content %}{% endblock content %}</div>
-    <div id="footer">
+    <div id="footer" class="footer">
       {% block footer %}
       &copy; Copyright 2021 by <a href="https://tomasfarias.dev">Tomás Farías</a>.
       {% endblock footer %}

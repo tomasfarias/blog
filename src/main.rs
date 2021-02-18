@@ -39,11 +39,8 @@ async fn main() -> io::Result<()> {
             .data(pool.clone())
             .wrap(error_handlers)
             .wrap(Logger::default())
-            .service(web::resource("/").route(web::get().to(routes::index)))
-            .service(web::resource("/index").route(web::get().to(routes::index)))
-            .service(web::resource("/blog").route(web::get().to(routes::blog)))
-            .service(web::resource("/blog/{slug}").route(web::get().to(routes::post)))
-            .service(web::resource("/hireme").route(web::get().to(routes::hire_me)))
+            .service(web::resource("/").route(web::get().to(routes::blog)))
+            .service(web::resource("/posts/{slug}").route(web::get().to(routes::post)))
             .service(fs::Files::new("/static", "static/"))
     };
     HttpServer::new(app).bind("127.0.0.1:8080")?.run().await

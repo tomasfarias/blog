@@ -1,4 +1,4 @@
-use actix_web::{error, web, Error, HttpResponse, Result};
+use actix_web::{web, HttpResponse, Result};
 use actix_web::dev::{ServiceResponse, Body, ResponseBody};
 use actix_web::http::{StatusCode, header};
 use actix_web::middleware::errhandlers::{ErrorHandlerResponse, ErrorHandlers};

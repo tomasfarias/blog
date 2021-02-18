@@ -1,14 +1,11 @@
 use std::ops::Deref;
 
-use actix_web::{error, HttpResponse};
-use actix_web::dev::HttpResponseBuilder;
-use actix_web::http::{header, StatusCode};
 use derive_more::{Display, Error};
 use diesel::pg::PgConnection;
 use diesel::result;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection, PoolError, self};
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection, PoolError};
 
-use crate::models::{NewPost, Post};
+use crate::models::Post;
 
 #[derive(Debug, Display, Error)]
 pub enum DatabaseError {
@@ -35,8 +32,8 @@ pub fn get_conn(pool: &PgPool) -> Result<PgPooledConnection, DatabaseError> {
         .map_err(|e| DatabaseError::ConnectionPoolError(e))
 }
 
-pub fn select_last_n_posts(n: i64, pool: &PgPool) -> Result<Vec<Post>, DatabaseError> {
-    Post::last_n_published(n, get_conn(pool)?.deref())
+pub fn select_last_n_posts(n: i64, offset: i64, pool: &PgPool) -> Result<Vec<Post>, DatabaseError> {
+    Post::last_n_published(n, offset, get_conn(pool)?.deref())
         .map_err(|e| {
             match e {
                 result::Error::NotFound => DatabaseError::NotFound(e),
@@ -54,6 +51,7 @@ pub fn select_post_with_slug(slug: &str, pool: &PgPool) -> Result<Post, Database
         })
 }
 
+/*
 pub fn insert_new_post(title: &str, body: &str, published: bool, pool: &PgPool) -> Result<Post, DatabaseError> {
     let new_post = NewPost::new(title, body, published);
     new_post.insert(get_conn(pool)?.deref()).map_err(|e| {
@@ -83,3 +81,4 @@ pub fn delete_post(slug: &str, pool: &PgPool) -> Result<(), DatabaseError> {
             }
         })
 }
+*/
