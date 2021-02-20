@@ -3,6 +3,7 @@ CREATE TABLE posts (
   title VARCHAR NOT NULL,
   slug VARCHAR NOT NULL,
   body TEXT NOT NULL,
+  introduction TEXT NULL,
   published BOOLEAN NOT NULL DEFAULT 'f',
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,

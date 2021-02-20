@@ -6,8 +6,6 @@ use tera::{Context, Tera};
 use serde::Deserialize;
 
 use crate::db::{self, DatabaseError};
-
-
 #[derive(Debug, Display, Error)]
 pub enum ServerError {
     #[display(fmt = "An internal error ocurred. Please try again later.")]
@@ -42,8 +40,14 @@ pub async fn blog(
     query: web::Query<PageQuery>,
     tmpl: web::Data<Tera>,
 ) -> Result<HttpResponse, ServerError> {
-    let offset = query.page.unwrap_or(0) * 15;
-    let posts = web::block(move || db::select_last_n_posts(10, offset, &pool))
+    let page = query.page.unwrap_or(1);
+
+    let conn = db::get_conn(&pool)
+        .map_err(|e| {
+            log::error!("Database error: {}", e);
+            ServerError::InternalError
+        })?;
+    let posts = web::block(move || db::select_last_n_posts(20, (page - 1) * 15, conn))
         .await
         .map_err(|e| {
             match e {
@@ -58,8 +62,107 @@ pub async fn blog(
             }
         })?;
 
+    let conn = db::get_conn(&pool)
+        .map_err(|e| {
+            log::error!("Database error: {}", e);
+            ServerError::InternalError
+        })?;
+    let total_posts = web::block(move || db::count_total_posts(conn))
+        .await
+        .map_err(|e| {
+            match e {
+                BlockingError::Error(DatabaseError::ConnectionPoolError(_)) => {
+                    log::error!("Error with connection pool: {}", e);
+                    ServerError::InternalError
+                },
+                _ => {
+                    log::error!("Database error: {}", e);
+                    ServerError::InternalError
+                }
+            }
+        })?;
+    let total_pages = total_posts / 15;
+
     let mut context = Context::new();
     context.insert("posts", &posts);
+    context.insert("page", &page);
+    context.insert("total_pages", &total_pages);
+
+    let rendered = tmpl
+        .render("blog.html.tera", &context)
+        .map_err(|e| {
+            log::error!("Failed to render template: {}", e);
+            ServerError::InternalError
+        })?;
+
+    Ok(HttpResponse::Ok().body(rendered))
+}
+
+#[derive(Deserialize)]
+pub struct SearchQuery {
+    tag: Option<String>,
+    page: Option<i64>,
+}
+
+pub async fn search(
+    pool: web::Data<db::PgPool>,
+    tmpl: web::Data<Tera>,
+    query: web::Query<SearchQuery>,
+) -> Result<HttpResponse, ServerError> {
+    let page = query.page.unwrap_or(1);
+    let mut context = Context::new();
+
+    let conn = db::get_conn(&pool)
+        .map_err(|e| {
+            log::error!("Database error: {}", e);
+            ServerError::InternalError
+        })?;
+    let posts = if query.tag.is_some() {
+        let search_tag = query.tag.as_ref().unwrap().to_string();
+        context.insert("search_tag", &search_tag);
+
+        web::block(move || db::select_n_posts_with_tag(&search_tag, 20, (page - 1) * 15, conn))
+            .await
+            .map_err(|e| {
+                match e {
+                    BlockingError::Error(DatabaseError::ConnectionPoolError(_)) => {
+                        log::error!("Error with connection pool: {}", e);
+                        ServerError::InternalError
+                    },
+                    _ => {
+                        log::error!("Database error: {}", e);
+                        ServerError::InternalError
+                    }
+                }
+            })?
+    } else {
+        Vec::new()
+    };
+
+    let conn = db::get_conn(&pool)
+        .map_err(|e| {
+            log::error!("Database error: {}", e);
+            ServerError::InternalError
+        })?;
+    let total_posts = web::block(move || db::count_total_posts(conn))
+        .await
+        .map_err(|e| {
+            match e {
+                BlockingError::Error(DatabaseError::ConnectionPoolError(_)) => {
+                    log::error!("Error with connection pool: {}", e);
+                    ServerError::InternalError
+                },
+                _ => {
+                    log::error!("Database error: {}", e);
+                    ServerError::InternalError
+                }
+            }
+        })?;
+    let total_pages = total_posts / 15;
+
+    context.insert("posts", &posts);
+    context.insert("page", &page);
+    context.insert("total_pages", &total_pages);
 
     let rendered = tmpl
         .render("blog.html.tera", &context)
@@ -76,7 +179,12 @@ pub async fn post(
     tmpl: web::Data<Tera>,
     post_slug: web::Path<String>,
 ) -> Result<HttpResponse, ServerError> {
-    let post = web::block(move || db::select_post_with_slug(&post_slug, &pool))
+    let conn = db::get_conn(&pool)
+        .map_err(|e| {
+            log::error!("Database error: {}", e);
+            ServerError::InternalError
+        })?;
+    let post = web::block(move || db::select_post_with_slug(&post_slug, conn))
         .await
         .map_err(|e| {
             match e {

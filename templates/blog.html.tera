@@ -6,17 +6,39 @@
 {% block content %}
   <h1>All posts</h1>
   {% if posts | length == 0 %}
-  <p>No posts available, stay tuned!</p>
+    <p>No posts available, stay tuned!</p>
   {% else %}
     <ul>
       {% for post in posts %}
       <h2><a href="/blog/{{ post.slug }}">{{ post.title }}</a></h2>
       <p class="subtitle">{{ post.published_at }}</p>
+      {% if post.tags %}
+        {% for tag in post.tags %}
+          <ul class="tags"><li class="tag"><a href="/search?tag={{ tag }}">{{ tag }}</a></li></ul>
+        {% endfor %}
+      {% endif %}
       {% if post.introduction %}
         <p>{{ post.introduction }}</p>
       {% endif %}
       <br>
       {% endfor %}
     </ul>
-  {% endif %}
+    {% endif %}
+    {% if page > 1 and total_pages > 1 %}
+    <div class="pagination">
+      <a href="/?page={{ page - 1 }}"><<</a>
+      <a href="/">1</a>
+      {% if total_pages > 3 %}
+        {% for page_n in range(start=2, end=total_pages) %}
+          {% if page_n == (page + 1) %}
+            <div class="current">{{ page_n }}</div>
+          {% else %}
+            <a href="/?page={{ page_n }}">{{ page_n }}</a>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+        <a href="/?page={{ total_pages }}">{{ total_pages }}</a>
+        <a href="/?page={{ page + 1 }}">>></a>
+    </div>
+    {% endif %}
 {% endblock content %}

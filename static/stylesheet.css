@@ -45,6 +45,42 @@ header {
     border-bottom: dotted #82AAFF;
 }
 
+.pagination {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pagination a {
+    color: #EEFFFF;
+    float: left;
+    padding: 8px 12px;
+    text-decoration: none;
+}
+
+.pagination a.active {
+    background-color: #82AAFF;
+    border-radius: 5px;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #82AAFF;
+    border-radius: 5px;
+}
+
+.tags {
+    padding: 0;
+}
+
+.tag {
+    display: inline;
+}
+
+.tag a {
+    color: #FFCB6B;
+    font-size: 10px;
+}
+
 nav a {
     font-size: 22px;
 }

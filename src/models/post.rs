@@ -1,9 +1,10 @@
 use chrono::{Utc, NaiveDateTime};
 use diesel::pg::PgConnection;
+use diesel::dsl::count_star;
 use diesel::prelude::*;
 use serde::Serialize;
 
-use crate::models::schema::posts;
+use crate::models::schema::{posts, tags, post_tags};
 
 #[derive(Serialize, Debug, Queryable)]
 pub struct Post {
@@ -12,6 +13,7 @@ pub struct Post {
     pub slug: String,
     pub body: String,
     pub introduction: Option<String>,
+    pub tags: Vec<String>,
     pub published: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -32,6 +34,10 @@ pub struct NewPost {
 }
 
 impl Post {
+    pub fn count_total(conn: &PgConnection) -> QueryResult<i64> {
+        posts::table.select(count_star()).first(conn)
+    }
+
     pub fn last_n_published(n: i64, offset: i64, conn: &PgConnection) -> QueryResult<Vec<Self>> {
         posts::table.filter(posts::published.eq(true))
             .order(posts::published_at.desc())
@@ -58,8 +64,29 @@ impl Post {
             .filter(posts::slug.eq(_slug))
             .execute(conn)
     }
-}
 
+    pub fn select_n_posts_with_tag(_tag: &str, n:i64, offset: i64, conn: &PgConnection) -> QueryResult<Vec<Self>> {
+        tags::table
+            .filter(tags::name.eq(_tag))
+            .inner_join(post_tags::table.inner_join(posts::table))
+            .select((
+                posts::id,
+                posts::title,
+                posts::slug,
+                posts::body,
+                posts::introduction,
+                posts::tags,
+                posts::published,
+                posts::created_at,
+                posts::updated_at,
+                posts::published_at,
+            ))
+            .order(posts::published_at.desc())
+            .offset(offset)
+            .limit(n)
+            .load::<Post>(conn)
+    }
+}
 
 fn title_to_slug(title: &str) -> String {
     title.to_lowercase()

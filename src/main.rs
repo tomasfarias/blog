@@ -1,3 +1,4 @@
+
 #[macro_use]
 extern crate diesel;
 extern crate lazy_static;
@@ -41,6 +42,7 @@ async fn main() -> io::Result<()> {
             .wrap(Logger::default())
             .service(web::resource("/").route(web::get().to(routes::blog)))
             .service(web::resource("/posts/{slug}").route(web::get().to(routes::post)))
+            .service(web::resource("/search").route(web::get().to(routes::search)))
             .service(fs::Files::new("/static", "static/"))
     };
     HttpServer::new(app).bind("127.0.0.1:8080")?.run().await

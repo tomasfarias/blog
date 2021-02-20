@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use derive_more::{Display, Error};
 use diesel::pg::PgConnection;
 use diesel::result;
@@ -32,8 +30,8 @@ pub fn get_conn(pool: &PgPool) -> Result<PgPooledConnection, DatabaseError> {
         .map_err(|e| DatabaseError::ConnectionPoolError(e))
 }
 
-pub fn select_last_n_posts(n: i64, offset: i64, pool: &PgPool) -> Result<Vec<Post>, DatabaseError> {
-    Post::last_n_published(n, offset, get_conn(pool)?.deref())
+pub fn count_total_posts(conn: PgPooledConnection) -> Result<i64, DatabaseError> {
+    Post::count_total(&conn)
         .map_err(|e| {
             match e {
                 result::Error::NotFound => DatabaseError::NotFound(e),
@@ -42,8 +40,9 @@ pub fn select_last_n_posts(n: i64, offset: i64, pool: &PgPool) -> Result<Vec<Pos
         })
 }
 
-pub fn select_post_with_slug(slug: &str, pool: &PgPool) -> Result<Post, DatabaseError> {
-    Post::select_with_slug(slug, get_conn(pool)?.deref()).map_err(|e| {
+pub fn select_last_n_posts(n: i64, offset: i64, conn: PgPooledConnection) -> Result<Vec<Post>, DatabaseError> {
+    Post::last_n_published(n, offset, &conn)
+        .map_err(|e| {
             match e {
                 result::Error::NotFound => DatabaseError::NotFound(e),
                 _ => DatabaseError::QueryError(e)
@@ -51,10 +50,8 @@ pub fn select_post_with_slug(slug: &str, pool: &PgPool) -> Result<Post, Database
         })
 }
 
-/*
-pub fn insert_new_post(title: &str, body: &str, published: bool, pool: &PgPool) -> Result<Post, DatabaseError> {
-    let new_post = NewPost::new(title, body, published);
-    new_post.insert(get_conn(pool)?.deref()).map_err(|e| {
+pub fn select_post_with_slug(slug: &str, conn: PgPooledConnection) -> Result<Post, DatabaseError> {
+    Post::select_with_slug(slug, &conn).map_err(|e| {
             match e {
                 result::Error::NotFound => DatabaseError::NotFound(e),
                 _ => DatabaseError::QueryError(e)
@@ -62,23 +59,11 @@ pub fn insert_new_post(title: &str, body: &str, published: bool, pool: &PgPool) 
         })
 }
 
-pub fn publish_post(slug: &str, pool: &PgPool) -> Result<(), DatabaseError> {
-    Post::publish_with_slug(slug, get_conn(pool)?.deref())
-        .map(|_| ()).map_err(|e| {
+pub fn select_n_posts_with_tag(tag: &str, n: i64, offset: i64, conn: PgPooledConnection) -> Result<Vec<Post>, DatabaseError> {
+    Post::select_n_posts_with_tag(tag, n, offset, &conn).map_err(|e| {
             match e {
                 result::Error::NotFound => DatabaseError::NotFound(e),
                 _ => DatabaseError::QueryError(e)
             }
         })
 }
-
-pub fn delete_post(slug: &str, pool: &PgPool) -> Result<(), DatabaseError> {
-    Post::delete_with_slug(slug, get_conn(pool)?.deref())
-        .map(|_| ()).map_err(|e| {
-            match e {
-                result::Error::NotFound => DatabaseError::NotFound(e),
-                _ => DatabaseError::QueryError(e)
-            }
-        })
-}
-*/
