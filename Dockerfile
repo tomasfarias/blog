@@ -1,18 +1,15 @@
-FROM rust:1.47 as builder
+FROM rust:1.49 as builder
 
 WORKDIR /build
 
 COPY . .
 
 RUN cargo build --release
-RUN cargo install diesel_cli
 
 ARG DATABASE_URL
 ENV DATABASE_URL $DATABASE_URL
 
-RUN diesel setup
-
-FROM alpine:latest
+FROM debian:buster-slim
 
 ARG APP=/usr/src/app
 
@@ -20,14 +17,19 @@ EXPOSE 8080
 
 ENV APP_USER=appuser
 
-RUN addgroup -S $APP_USER \
-    && adduser -S -g $APP_USER $APP_USER
+RUN groupadd $APP_USER \
+    && useradd -g $APP_USER $APP_USER \
+    && mkdir -p ${APP}
+
+RUN apt-get update -y \
+    && apt-get install libpq-dev -y
 
 COPY --from=builder /build/target/release/web ${APP}/web
+COPY --from=builder /build/static ${APP}/static
 
 RUN chown -R $APP_USER:$APP_USER ${APP}
 
 USER $APP_USER
-WORKDIR ${APP}
+WORKDIR $APP
 
 CMD ["./web"]
