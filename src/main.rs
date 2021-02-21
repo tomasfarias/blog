@@ -45,5 +45,5 @@ async fn main() -> io::Result<()> {
             .service(web::resource("/search").route(web::get().to(routes::search)))
             .service(fs::Files::new("/static", "static/"))
     };
-    HttpServer::new(app).bind("127.0.0.1:8080")?.run().await
+    HttpServer::new(app).bind("127.0.0.1:80")?.run().await
 }
