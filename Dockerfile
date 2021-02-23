@@ -13,7 +13,7 @@ FROM debian:buster-slim
 
 ARG APP=/usr/src/app
 
-EXPOSE 80
+EXPOSE 8080
 
 ENV APP_USER=appuser
 
@@ -27,6 +27,7 @@ RUN apt-get update -y \
 COPY --from=builder /build/target/release/web ${APP}/web
 
 COPY --from=builder /build/static ${APP}/static
+COPY --from=builder /build/templates ${APP}/templates
 
 RUN chown -R $APP_USER:$APP_USER ${APP}
 

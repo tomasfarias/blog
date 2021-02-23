@@ -1,9 +1,9 @@
-
 #[macro_use]
 extern crate diesel;
 extern crate lazy_static;
 
 use std::{env, io, process};
+use log;
 
 use actix_files as fs;
 use actix_web::middleware::Logger;
@@ -45,5 +45,7 @@ async fn main() -> io::Result<()> {
             .service(web::resource("/search").route(web::get().to(routes::search)))
             .service(fs::Files::new("/static", "static/"))
     };
-    HttpServer::new(app).bind("127.0.0.1:80")?.run().await
+
+    log::info!("App starting");
+    HttpServer::new(app).bind("0.0.0.0:8080")?.run().await
 }
